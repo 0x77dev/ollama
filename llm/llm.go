@@ -24,7 +24,7 @@ var cpuOnlyFamilies = []string{
 	"mamba",
 }
 
-func New(model string, adapters, projectors []string, opts api.Options) (LLM, error) {
+func New(model string, adapters, projectors []string, opts *api.Options) (LLM, error) {
 	if _, err := os.Stat(model); err != nil {
 		return nil, err
 	}
@@ -86,6 +86,9 @@ func New(model string, adapters, projectors []string, opts api.Options) (LLM, er
 			opts.NumGPU++
 			mem += layer
 		}
+
+		opts.VRAMUsed = mem
+		opts.VRAMTotal = vram
 	}
 
 	if opts.NumGPU == 0 || slices.Contains(cpuOnlyFamilies, ggml.KV().Architecture()) {
@@ -128,7 +131,7 @@ func Init() error {
 	return nativeInit()
 }
 
-func newLlmServer(gpuInfo gpu.GpuInfo, model string, adapters, projectors []string, opts api.Options) (LLM, error) {
+func newLlmServer(gpuInfo gpu.GpuInfo, model string, adapters, projectors []string, opts *api.Options) (LLM, error) {
 	dynLibs := getDynLibs(gpuInfo)
 
 	// Check to see if the user has requested a specific library instead of auto-detecting
